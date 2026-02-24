@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:  #0f0d64;
+      --blue:  #1a82dd;
+      --gold:  #d2ab3e;
+      --light: #f6f7f6;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      /* Gradient background utama — biru muda mendominasi */
+      background: linear-gradient(145deg, #0f0d64 0%, #1254a8 35%, #1a82dd 65%, #5eb8f5 100%);
+      background-attachment: fixed;
+      color: var(--light);
+    }
+
+    /* Noise texture overlay supaya ga flat */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.45;
+    }
+    .blob-1 {
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, #5eb8f5 0%, transparent 70%);
+      top: -120px; right: -100px;
+    }
+    .blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, #d2ab3e 0%, transparent 70%);
+      bottom: 10%; left: -80px;
+      opacity: 0.18;
+    }
+    .blob-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, #1a82dd 0%, transparent 70%);
+      bottom: 30%; right: 10%;
+      opacity: 0.3;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 62px;
+      /* Glass navbar */
+      background: rgba(15, 13, 100, 0.35);
+      backdrop-filter: blur(20px) saturate(1.5);
+      -webkit-backdrop-filter: blur(20px) saturate(1.5);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .logo-mark img { width: 38px; height: 38px; object-fit: contain; }
+
+    .logo-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .logo-sub {
+      display: block;
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      color: rgba(210,171,62,0.85);
+      text-transform: uppercase;
+      font-weight: 500;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    /* ── BANNER ── */
+    .banner {
+      position: relative;
+      z-index: 1;
+      padding: 4rem 2rem 3.5rem;
+      text-align: center;
+    }
+
+    /* Glass card di dalam banner */
+    .banner-card {
+      display: inline-block;
+      max-width: 640px;
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 16px;
+      padding: 2.5rem 2.5rem 2rem;
+      box-shadow: 0 8px 40px rgba(15,13,100,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    .banner-eyebrow {
+      display: inline-block;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(210,171,62,0.4);
+      padding: 0.2rem 1rem;
+      border-radius: 2px;
+      margin-bottom: 1.25rem;
+    }
+
+    .banner h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.15;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .banner h1 em {
+      font-style: normal;
+      /* gradient text */
+      background: linear-gradient(90deg, #5eb8f5, var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .banner p {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.6);
+      font-weight: 300;
+      line-height: 1.75;
+    }
+
+    .banner-line {
+      width: 48px;
+      height: 2px;
+      margin: 1.5rem auto 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    }
+
+    /* ── DASHBOARD SECTION ── */
+    .dashboard-section {
+      position: relative;
+      z-index: 1;
+      padding: 0 2rem 3rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .embed-card {
+      border-radius: 12px;
+      overflow: hidden;
+      /* Glass card */
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 16px 60px rgba(15,13,100,0.3), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .embed-topbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1rem;
+      background: rgba(15,13,100,0.4);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .topbar-dots { display: flex; gap: 5px; }
+    .topbar-dots span { width: 9px; height: 9px; border-radius: 50%; }
+    .topbar-dots span:nth-child(1) { background: #ff5f57; }
+    .topbar-dots span:nth-child(2) { background: #febc2e; }
+    .topbar-dots span:nth-child(3) { background: #28c840; }
+
+    .topbar-url {
+      flex: 1;
+      margin-left: 0.5rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 0.2rem 0.75rem;
+      font-size: 0.72rem;
+      color: rgba(246,247,246,0.45);
+      font-family: monospace;
+      max-width: 480px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .embed-frame {
+      width: 100%;
+      height: 80vh;
+      min-height: 500px;
+      border: none;
+      display: block;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 1.25rem 2rem;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.05em;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    footer span { color: rgba(210,171,62,0.7); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav { padding: 0 1.25rem; }
+      .banner { padding: 2.5rem 1rem 2rem; }
+      .banner-card { padding: 1.75rem 1.25rem 1.5rem; }
+      .dashboard-section { padding: 0 1rem 2rem; }
+      .embed-frame { height: 65vh; min-height: 400px; }
+      .topbar-url { max-width: 120px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- ══ NAVBAR ══ -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="logo-mark">
+        <img src="Logo_BNN.png" alt="Logo BNN">
+      </div>
+      <div>
+        <div class="logo-title">DrugLens</div>
+        <span class="logo-sub">Narcotics Data Analytics</span>
+      </div>
+    </a>
+  </nav>
+
+  <!-- ══ BANNER ══ -->
+  <div class="banner">
+    <div class="banner-card">
+      <span class="banner-eyebrow">⬡ Indonesia Drug Report</span>
+      <h1>Mapping <em>Drug Cases</em><br/>Across Indonesia</h1>
+      <p><p>Menyajikan data kasus narkotika dalam bentuk visual.</p></p>
+      <div class="banner-line"></div>
+    </div>
+  </div>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="dashboard-section">
+    <div class="embed-card">
+      <div class="embed-topbar">
+        <div class="topbar-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="topbar-url">lookerstudio.google.com/embed/reporting/87f5c1d9…</div>
+      </div>
+      <iframe
+        class="embed-frame"
+        src="https://lookerstudio.google.com/embed/reporting/87f5c1d9-79c6-4a17-9624-c0d7878a9efc/page/p_pprbm2bo0d"
+        frameborder="0"
+        style="border:0"
+        allowfullscreen
+        sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+      ></iframe>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 <span>DrugLens</span> — Powered by Google Looker Studio
+  </footer>
+
+</body>
+</html>
